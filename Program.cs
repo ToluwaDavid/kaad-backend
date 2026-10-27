@@ -24,6 +24,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // It enables the application to handle incoming requests and return responses based on the defined controllers and their actions.
 builder.Services.AddControllers();
 
+// Allow our Angular frontend (localhost:4200) to call this API.
+
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[]{"http://localhost:4200"};
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular" , policy =>
+    {
+        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 // Turns on OpenAPI (Swagger) support for the application. 
 // It enables automatic generation of API documentation and provides a user-friendly interface for exploring and testing the API endpoints.
@@ -55,6 +66,7 @@ if (app.Environment.IsDevelopment()) // This line checks if the application is r
 
 app.UseHttpsRedirection(); // This line adds middleware to the request pipeline that redirects HTTP requests to HTTPS. It ensures that all incoming requests are served over a secure connection, enhancing the security of the application by encrypting the data transmitted between the client and server.   
 
+app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers(); // This line maps the controller routes to the application. It enables the routing of incoming HTTP requests to the appropriate controller actions based on the defined routes. This allows the application to handle requests and return responses based on the logic implemented in the controllers.
